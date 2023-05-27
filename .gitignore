@@ -1,0 +1,5 @@
+*.pyc
+*.code-workspace
+*.sqlite3
+
+griot_backend/venv/
