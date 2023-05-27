@@ -371,4 +371,79 @@ class AccountUpdateAPITest(APITestCase):
         # Assert that the owner_user field remains unchanged in the database
         self.account.refresh_from_db()
         self.assertEqual(self.account.owner_user, self.user)
-            
+
+class AddBelovedOneViewTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser', 
+            password='testpassword'
+        )
+        Profile.objects.create(user=self.user)
+        
+        self.client.force_authenticate(user=self.user)
+
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+
+    def test_add_beloved_one(self):
+
+        beloved_one = User.objects.create_user(
+            username='beloveduser', 
+            password='belovedpassword'
+        )
+
+        url = reverse('add_beloved_one', kwargs={'pk': self.account.pk, 'beloved_one_id': beloved_one.pk})
+        response = self.client.post(url)
+
+        # Assert the response status code and message
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'Beloved one added successfully.')
+
+        # Refresh the account object from the database
+        self.account.refresh_from_db()
+
+        # Assert that the beloved_one is added to the account
+        self.assertTrue(self.account.beloved_ones.filter(pk=beloved_one.pk).exists())
+
+
+class RemoveBelovedOneToAccountViewTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser', 
+            password='testpassword'
+        )
+        Profile.objects.create(user=self.user)
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+        self.client.force_authenticate(user=self.user)
+        
+        self.beloved_one = User.objects.create_user(
+            username='beloveduser', 
+            password='belovedpassword'
+        )
+        Profile.objects.create(user=self.beloved_one)
+        self.account.beloved_ones.add(self.beloved_one)
+
+    def test_remove_beloved_one(self):
+
+        # Make a POST request to remove the beloved_one from the account
+        url = reverse('remove_beloved_one', kwargs={'pk': self.account.pk, 'beloved_one_id': self.beloved_one.pk})
+        response = self.client.post(url)
+
+        # Assert the response status code and message
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'Beloved one removed successfully.')
+
+        # Refresh the account object from the database
+        self.account.refresh_from_db()
+
+        # Assert that the beloved_one is removed from the account
+        self.assertFalse(self.account.beloved_ones.filter(pk=self.beloved_one.pk).exists())
+
+    def test_remove_beloved_one_not_found(self):
+
+        # Make a POST request to remove a beloved_one not present in the account
+        invalid_beloved_one_id = self.beloved_one.pk + 1
+        url = reverse('remove_beloved_one', kwargs={'pk': self.account.pk, 'beloved_one_id': invalid_beloved_one_id})
+        response = self.client.post(url)
+
+        # Assert the response status code and message
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

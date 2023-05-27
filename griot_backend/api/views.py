@@ -5,6 +5,7 @@ from rest_framework.authtoken.models import Token
 from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer
 from profiles.models import Profile
 from accounts.models import Account
+from django.shortcuts import get_object_or_404
 
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -57,3 +58,28 @@ class UpdateAccountView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AccountSerializer
     queryset = Account.objects.all()
+
+class AddBelovedOneToAccountView(generics.CreateAPIView):
+    http_method_names = ['post']
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Account.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        account = self.get_object()
+        beloved_one_id = kwargs.get('beloved_one_id')
+        beloved_one = get_object_or_404(User, pk=beloved_one_id)
+        account.beloved_ones.add(beloved_one)
+        return Response({'message': 'Beloved one added successfully.'})
+    
+class RemoveBelovedOneFromAccountView(generics.CreateAPIView):
+    http_method_names = ['post']
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Account.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        account = self.get_object()
+        beloved_one_id = kwargs.get('beloved_one_id')
+        beloved_one = get_object_or_404(User, pk=beloved_one_id)
+        account.beloved_ones.remove(beloved_one)
+        return Response({'message': 'Beloved one removed successfully.'})
+
