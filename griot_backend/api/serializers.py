@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 from profiles.models import Profile
 from accounts.models import Account
 
@@ -86,3 +86,12 @@ class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = '__all__'
+        # fields = ('name', 'created_at', 'updated_at')
+
+    def update(self, instance, validated_data):
+        if 'owner_user' in self.initial_data:
+            raise exceptions.PermissionDenied("Updating owner_user field is not allowed.")
+        if 'beloved_ones' in self.initial_data:
+            raise exceptions.PermissionDenied("Updating beloved_ones field is not allowed.")
+        
+        return super().update(instance, validated_data)

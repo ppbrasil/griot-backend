@@ -51,3 +51,9 @@ class CreateAccountView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(owner_user=self.request.user)
     
+
+class UpdateAccountView(generics.UpdateAPIView):
+    http_method_names = ['patch']
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AccountSerializer
+    queryset = Account.objects.all()

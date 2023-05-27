@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 from profiles.models import Profile
+from accounts.models import Account
 
 class UserCreationTestCase(APITestCase):
     def test_successful_user_creation(self):
@@ -321,3 +322,53 @@ class AccountCreateTestCase(APITestCase):
 
         # Assert that unauthenticated users cannot create an account
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class AccountUpdateAPITest(APITestCase):
+    def setUp(self):
+        # Create a test user
+        self.user = User.objects.create_user(
+            username='testuser', 
+            password='testpassword'
+        )
+
+        Profile.objects.create(user=self.user)
+        
+        self.client.force_authenticate(user=self.user)
+
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+
+    def test_update_account_name(self):
+        url = reverse('update_account', args=[self.account.pk]) 
+
+        # Send a PATCH request to update only the name field
+        new_name = 'Updated Account Name'
+        data = {'name': new_name}
+        response = self.client.patch(url, data)
+
+        # Check the response status code and updated name value in the database
+        self.assertEqual(response.status_code, 200)
+        self.account.refresh_from_db()
+        self.assertEqual(self.account.name, new_name)
+
+        # Ensure other fields remain unchanged
+        self.assertEqual(self.account.owner_user, self.user)
+        self.assertEqual(set(self.account.beloved_ones.all()), set())
+
+    def test_update_account_owner_user(self):
+        # Create a second test user
+        new_user = User.objects.create_user(username='newuser', password='testpassword')
+        Profile.objects.create(user=new_user)
+
+        url = reverse('update_account', args=[self.account.pk])   # Assuming 'account-owner-update' is the endpoint for updating the owner_user field
+
+        # Send a PATCH request to update the owner_user field
+        data = {'owner_user': new_user.id}  # Try to change the owner_user to the new_user
+        response = self.client.patch(url, data)
+
+        # Check the response status code and ensure it is a failure (e.g., 4xx or 5xx)
+        self.assertNotEqual(response.status_code, status.HTTP_200_OK)
+
+        # Assert that the owner_user field remains unchanged in the database
+        self.account.refresh_from_db()
+        self.assertEqual(self.account.owner_user, self.user)
+            
