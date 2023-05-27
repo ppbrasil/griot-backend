@@ -307,18 +307,17 @@ class AccountCreateTestCase(APITestCase):
         # Assert that the account is associated with the test user
         self.assertEqual(response.data['owner_user'], self.user.id)
 
-    # def test_create_account_unauthenticated(self):
-    #     # Log out the test user
-    #     self.client.logout()
+    def test_create_account_unauthenticated(self):
+        # Log out the test user
+        self.client.logout()
 
-    #     # Data to be used to create an account
-    #     data = {
-    #         'name': 'Test Account',
-    #         'description': 'This is a test account',
-    #     }
+        # Data to be used to create an account
+        data = {
+            'name': 'Test Account',
+        }
 
-    #     # Attempt to create an account
-    #     response = self.client.post(self.create_url, data)
+        # Attempt to create an account
+        response = self.client.post(self.create_url, data)
 
-    #     # Assert that unauthenticated users cannot create an account
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # Assert that unauthenticated users cannot create an account
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
