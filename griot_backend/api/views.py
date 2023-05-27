@@ -22,6 +22,16 @@ class AuthenticateUserView(generics.CreateAPIView):
         token, created = Token.objects.get_or_create(user=user)
         return Response({'token': token.key}, status=200)
 
+class LogoutView(generics.GenericAPIView):
+    http_method_names = ['post']
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        token = Token.objects.get(user=request.user)
+        token.delete()
+        return Response({"detail": "User logged out successfully."})
+
+
 class UpdateProfileView(generics.UpdateAPIView):
     http_method_names = ['patch']
     queryset = Profile.objects.all()

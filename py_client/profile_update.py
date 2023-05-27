@@ -7,17 +7,17 @@ path = f"profile/update/{id}/"
 
 url = base_url+path
 
-token = '293bc50f57945dd4d7c73079918b4f203b00b53f'
+token = '32255a358e27cba793366b34931a55aca095e39e'
 
 header = {
     "Authorization": f"Token {token}",
     "Content-Type": "application/json"
 }
 
-name = 'Pedro P'
-middle_name = 'Brazil'
+name = 'Pedro Paulo'
+middle_name = 'Brasil'
 last_name = 'de Assis Ribeiro'
-birth_date = '1980-12-18'
+birth_date = '1980-12-16'
 gender = 'male'
 
 data = {
