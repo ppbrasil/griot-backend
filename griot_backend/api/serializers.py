@@ -5,6 +5,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 from rest_framework import serializers
 from profiles.models import Profile
+from accounts.models import Account
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -76,4 +77,12 @@ class AuthenticationSerializer(serializers.Serializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
+        fields = '__all__'
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    owner_user = serializers.ReadOnlyField(source='owner_user.id')
+    
+    class Meta:
+        model = Account
         fields = '__all__'

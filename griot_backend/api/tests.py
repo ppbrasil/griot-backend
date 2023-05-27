@@ -274,3 +274,51 @@ class UpdateProfileTestCase(APITestCase):
         response = self.client.patch(self.update_profile_url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class AccountCreateTestCase(APITestCase):
+    def setUp(self):
+        # Create a test user
+        self.user = User.objects.create(
+            username="testuser",
+            password="testpassword123"
+        )
+        
+        Profile.objects.create(user=self.user)
+
+        # Authenticate the test user
+        self.client.force_authenticate(user=self.user)
+
+        # URL for creating an account
+        self.create_url = reverse('create_account')
+
+    def test_create_account(self):
+        # Data to be used to create an account
+        data = {
+            'name': 'Test Account',
+        }
+        
+        # Create an account
+        response = self.client.post(self.create_url, data)
+
+        # Assert that the account was created successfully
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['name'], 'Test Account')
+
+        # Assert that the account is associated with the test user
+        self.assertEqual(response.data['owner_user'], self.user.id)
+
+    # def test_create_account_unauthenticated(self):
+    #     # Log out the test user
+    #     self.client.logout()
+
+    #     # Data to be used to create an account
+    #     data = {
+    #         'name': 'Test Account',
+    #         'description': 'This is a test account',
+    #     }
+
+    #     # Attempt to create an account
+    #     response = self.client.post(self.create_url, data)
+
+    #     # Assert that unauthenticated users cannot create an account
+    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
