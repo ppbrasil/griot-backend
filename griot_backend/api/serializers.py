@@ -1,20 +1,44 @@
+from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.core.validators import validate_email
 from rest_framework import serializers
 from profiles.models import Profile
 
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    username = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
 
     class Meta:
         model = User
         fields = ('username', 'password', 'email')
 
+    def validate_username(self, value):
+        value = value.lower()
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("the username already taken.")
+        return value
+    
+    def validate_email(self, value):
+        value = value.lower()
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email address is already in use.")
+        return value
+
+    def validate_password(self, value):
+        try:
+            validate_password(value)
+        except ValidationError as exc:
+            raise serializers.ValidationError(str(exc))
+        return value
+
     def create(self, validated_data):
         user = User(
-            email=validated_data.get('email', None),
-            username=validated_data.get('username', None)
+            email=validated_data.get('email').lower(),
+            username=validated_data.get('username').lower()
         )
         user.set_password(validated_data.get('password'))
         user.save()
