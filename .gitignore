@@ -3,3 +3,6 @@
 *.sqlite3
 
 griot_backend/venv/
+
+**/migrations/
+
