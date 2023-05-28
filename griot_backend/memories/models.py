@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from accounts.models import Account
 
 class Memory(models.Model):
-    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='characters')
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='memories')
 
     title = models.CharField(max_length=255)
     allowed_access = models.ManyToManyField(User, related_name='accessible_memories')

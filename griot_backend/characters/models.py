@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import Account
+from memories.models import Memory
 
 class Character(models.Model):
     RELATIONSHIP_CHOICES = (
@@ -9,7 +10,7 @@ class Character(models.Model):
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='characters')
-    memories = models.ManyToManyField('Memory', related_name='characters')
+    memories = models.ManyToManyField(Memory, related_name='characters')
 
     name = models.CharField(max_length=255)
     picture = models.ImageField(upload_to='character/pictures', null=True, blank=True)

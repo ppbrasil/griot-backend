@@ -404,7 +404,6 @@ class AddBelovedOneViewTest(APITestCase):
         # Assert that the beloved_one is added to the account
         self.assertTrue(self.account.beloved_ones.filter(pk=beloved_one.pk).exists())
 
-
 class RemoveBelovedOneToAccountViewTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -447,3 +446,4 @@ class RemoveBelovedOneToAccountViewTest(APITestCase):
 
         # Assert the response status code and message
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+

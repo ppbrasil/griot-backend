@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'api',
     'profiles',
     'accounts',
+    'characters',
     'memories',
     'rest_framework',
     'rest_framework.authtoken',
