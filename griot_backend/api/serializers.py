@@ -7,6 +7,7 @@ from rest_framework import serializers, exceptions
 from profiles.models import Profile
 from accounts.models import Account
 from characters.models import Character
+from memories.models import Memory, Video
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -114,4 +115,10 @@ class CharacterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Character
+        fields = '__all__'
+
+class MemorySerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Memory
         fields = '__all__'

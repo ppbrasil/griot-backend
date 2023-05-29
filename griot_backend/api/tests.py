@@ -6,7 +6,10 @@ from rest_framework.authtoken.models import Token
 from profiles.models import Profile
 from accounts.models import Account
 from characters.models import Character
+from memories.models import Memory, Video
 
+
+# User and Auth related tests
 class UserCreationTestCase(APITestCase):
     def test_successful_user_creation(self):
         url = reverse('create_user') 
@@ -234,6 +237,7 @@ class LogoutTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         # Add additional assertions as per your application's missing token logout response.
 
+# Profile related tests
 class UpdateProfileTestCase(APITestCase):
     def setUp(self):
         self.create_user_url = reverse('create_user')
@@ -280,6 +284,7 @@ class UpdateProfileTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         # Add additional assertions as per your application's unauthorized profile update response.
 
+# Account related tests
 class AccountCreateTestCase(APITestCase):
     def setUp(self):
         # Create a test user
@@ -650,7 +655,8 @@ class ListBelovedOneFromAccountViewTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        
+
+# Character related tests
 class CharacterCreateTestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -804,3 +810,75 @@ class DeleteCharacterViewTestCase(APITestCase):
 
         # Assert that the character count in the database remains unchanged
         self.assertTrue(Character.objects.filter(pk=self.character.pk).exists())
+
+# Memory related tests
+
+class MemoryCreateTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpassword'
+        )
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_memory(self):
+        url = reverse('create_memory')
+        data = {
+            'account': self.account.id,
+            'title': 'Test Memory',
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Memory.objects.count(), 1)
+        self.assertEqual(Memory.objects.first().title, 'Test Memory')
+    
+    def test_create_memory_unauthorized(self):
+        self.client.force_authenticate(user=None)  # Unauthenticate the client
+        url = reverse('create_memory')
+        data = {
+            'account': self.account.id,
+            'title': 'Test Memory',
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(Memory.objects.count(), 0)
+
+    def test_create_memory_without_account(self):
+        url = reverse('create_memory')
+        data = {
+            'title': 'Test Memory',
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Memory.objects.count(), 0)
+
+class MemoryRetieveTestCase(APITestCase):
+    pass
+
+class MemoryUpdateTestCase(APITestCase):
+    pass
+
+class MemoryDeleteTestCase(APITestCase):
+    pass
+
+class MemoryListTestCase(APITestCase):
+    pass
+
+class MemoryAddCharacterTestCase(APITestCase):
+    pass
+
+class MemoryRemoveCharacterTestCase(APITestCase):
+    pass
+
+class VideoUploadTestCase(APITestCase):
+    pass
+
+class VideoDeleteTestCase(APITestCase):
+    pass
+
+class VideoProvideURLTestCase(APITestCase):
+    pass
+
+class VideoExpiringURLTestCase(APITestCase):
+    pass

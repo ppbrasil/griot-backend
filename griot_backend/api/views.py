@@ -3,7 +3,7 @@ from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 
-from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer, CharacterSerializer, UserAccountSerializer
+from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer, CharacterSerializer, UserAccountSerializer, MemorySerializer
 
 from django.contrib.auth.models import User
 from profiles.models import Profile
@@ -116,6 +116,7 @@ class ListBelovedOneFromAccountView(generics.RetrieveAPIView):
     lookup_field = 'pk'
 
 class CreateCharacterView(generics.CreateAPIView):
+    http_method_names = ['post']
     serializer_class = CharacterSerializer
     permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
 
@@ -135,3 +136,11 @@ class DeleteCharacterView(generics.UpdateAPIView):
         character.is_active = False
         character.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class CreateMemoryView(generics.CreateAPIView):
+    http_method_names = ['post']
+    serializer_class = MemorySerializer
+    permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
+
+
+
