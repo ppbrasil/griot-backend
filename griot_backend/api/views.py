@@ -1,21 +1,27 @@
-from django.contrib.auth.models import User
 from rest_framework.response import Response
-from rest_framework import generics, permissions, status
+from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
+from django.shortcuts import get_object_or_404
+
 from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer, CharacterSerializer
+
+from django.contrib.auth.models import User
 from profiles.models import Profile
 from accounts.models import Account
 from characters.models import Character
-from django.shortcuts import get_object_or_404
+
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from griot_backend.permissions import IsObjectOwner, IsBelovedOne, IsRelatedAccountOwner, IsRelatedAccountBelovedOne
+
 
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes =[permissions.AllowAny]
+    permission_classes =[AllowAny]
 
 class AuthenticateUserView(generics.CreateAPIView):
     serializer_class = AuthenticationSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -26,7 +32,7 @@ class AuthenticateUserView(generics.CreateAPIView):
 
 class LogoutView(generics.GenericAPIView):
     http_method_names = ['post']
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         token = Token.objects.get(user=request.user)
@@ -35,7 +41,7 @@ class LogoutView(generics.GenericAPIView):
 
 class UpdateProfileView(generics.UpdateAPIView):
     http_method_names = ['patch']
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsObjectOwner]
     serializer_class = ProfileSerializer
         
     def get_object(self):
@@ -45,7 +51,7 @@ class UpdateProfileView(generics.UpdateAPIView):
 
 class CreateAccountView(generics.CreateAPIView):
     http_method_names = ['post']
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = AccountSerializer
     queryset = Account.objects.all()
 
@@ -54,13 +60,13 @@ class CreateAccountView(generics.CreateAPIView):
     
 class UpdateAccountView(generics.UpdateAPIView):
     http_method_names = ['patch']
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsObjectOwner]
     serializer_class = AccountSerializer
     queryset = Account.objects.all().filter(is_active=True)
 
 class DeleteAccountView(generics.UpdateAPIView):
     http_method_names = ['delete']
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsObjectOwner]
     serializer_class = AccountSerializer
     queryset = Account.objects.all().filter(is_active=True)
 
@@ -72,7 +78,7 @@ class DeleteAccountView(generics.UpdateAPIView):
     
 class AddBelovedOneToAccountView(generics.CreateAPIView):
     http_method_names = ['post']
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsObjectOwner]
     queryset = Account.objects.all()
 
     def create(self, request, *args, **kwargs):
@@ -84,7 +90,7 @@ class AddBelovedOneToAccountView(generics.CreateAPIView):
     
 class RemoveBelovedOneFromAccountView(generics.CreateAPIView):
     http_method_names = ['post']
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsObjectOwner]
     queryset = Account.objects.all()
 
     def create(self, request, *args, **kwargs):
@@ -96,17 +102,17 @@ class RemoveBelovedOneFromAccountView(generics.CreateAPIView):
 
 class CreateCharacterView(generics.CreateAPIView):
     serializer_class = CharacterSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
 
 class UpdateCharacterView(generics.UpdateAPIView):
     serializer_class = CharacterSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
     queryset = Character.objects.all().filter(is_active=True)   
 
 class DeleteCharacterView(generics.UpdateAPIView):
     http_method_names = ['delete']
     serializer_class = CharacterSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
     queryset = Character.objects.all().filter(is_active=True)
 
     def delete(self, request, pk):

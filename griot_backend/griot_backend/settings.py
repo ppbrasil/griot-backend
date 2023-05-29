@@ -139,5 +139,9 @@ REST_FRAMEWORK = {
     
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+        'griot_backend.permissions.IsObjectOwner',
+        'griot_backend.permissions.IsBelovedOne',
+        'griot_backend.permissions.IsRelatedAccountOwner',
+        'griot_backend.permissions.IsRelatedAccountBelovedOne',
     ]
 }

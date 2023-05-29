@@ -459,8 +459,6 @@ class DeleteAccountViewTestCase(APITestCase):
         # Assert that the account count in the database remains unchanged
         self.assertTrue(Account.objects.filter(pk=self.account.pk).exists())
 
-
-
 class AddBelovedOneViewTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
