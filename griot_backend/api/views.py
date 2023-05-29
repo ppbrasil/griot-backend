@@ -89,4 +89,4 @@ class CreateCharacterView(generics.CreateAPIView):
 class UpdateCharacterView(generics.UpdateAPIView):
     serializer_class = CharacterSerializer
     permission_classes = [permissions.IsAuthenticated]
-    queryset = Character.objects.all()   
+    queryset = Character.objects.all().filter(is_active=True)   

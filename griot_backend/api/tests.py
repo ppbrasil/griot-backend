@@ -393,7 +393,6 @@ class AccountUpdateAPITest(APITestCase):
         self.account.refresh_from_db()
         self.assertEqual(self.account.name, 'Test Account')
 
-
 class AddBelovedOneViewTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -532,6 +531,23 @@ class CharacterUpdateTestCase(APITestCase):
         data = {
             'name': 'Jane Smith',
             'relationship': 'colleague',
+        }
+        self.client.force_authenticate(user=None)  # Remove authentication
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.character.refresh_from_db()
+        self.assertEqual(self.character.name, 'John Doe')  # Name should not be updated
+        self.assertEqual(self.character.relationship, 'friend')  # Relationship should not be updated
+
+    def test_update_deactivated_character(self):      
+
+        self.character.is_active = False
+        self.character.save()
+
+        url = reverse('update_character', kwargs={'pk': self.character.pk})
+        data = {
+            'name': 'New name',
+            'relationship': 'other',
         }
         self.client.force_authenticate(user=None)  # Remove authentication
         response = self.client.patch(url, data, format='json')
