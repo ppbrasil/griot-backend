@@ -503,6 +503,16 @@ class CharacterCreateTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(Character.objects.count(), 0)  # No new characters should be created
 
+    def test_create_character_without_account(self):
+        url = reverse('create_character')
+        data = {
+            'name': 'John Doe',
+            'relationship': 'friend',
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Character.objects.count(), 0)
+
 class CharacterUpdateTestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
