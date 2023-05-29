@@ -393,6 +393,74 @@ class AccountUpdateAPITest(APITestCase):
         self.account.refresh_from_db()
         self.assertEqual(self.account.name, 'Test Account')
 
+class DeleteAccountViewTestCase(APITestCase):
+    def setUp(self):
+        # Create a test user
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpassword'
+        )
+
+        # Create a profile for the user
+        Profile.objects.create(user=self.user)
+
+        # Authenticate the client with the test user
+        self.client.force_authenticate(user=self.user)
+
+        # Create an account for testing
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+
+    def test_delete_existing_account(self):
+        url = reverse('delete_account', args=[self.account.pk])
+        response = self.client.delete(url)
+
+        # Assert the response status code
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Assert that the account was preserved in the database
+        self.assertTrue(Account.objects.filter(pk=self.account.pk).exists())
+
+        # Assert that the account was inactivated
+        soft_deleted_account = Account.objects.get(pk=self.account.pk)
+        self.assertFalse(soft_deleted_account.is_active)
+
+    def test_delete_non_existing_account(self):
+        non_existing_pk = 99345679  # Assuming this ID doesn't exist in the database
+        url = reverse('delete_account', args=[non_existing_pk])
+        response = self.client.delete(url)
+
+        # Assert the response status code
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Assert that the account count in the database remains unchanged
+        self.assertTrue(Account.objects.filter(pk=self.account.pk).exists())
+
+    # def test_delete_account_with_invalid_id(self):
+    #     invalid_pk = 'invalid'  # Assuming an invalid account ID
+    #     url = reverse('delete_account', args=[invalid_pk])
+    #     response = self.client.delete(url)
+
+    #     # Assert the response status code
+    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    #     # Assert that the account count in the database remains unchanged
+    #     self.assertTrue(Account.objects.filter(pk=self.account.pk).exists())
+
+    def test_delete_account_authentication(self):
+        # Simulate an unauthenticated user
+        self.client.force_authenticate(user=None)
+
+        url = reverse('delete_account', args=[self.account.pk])
+        response = self.client.delete(url)
+
+        # Assert the response status code
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Assert that the account count in the database remains unchanged
+        self.assertTrue(Account.objects.filter(pk=self.account.pk).exists())
+
+
+
 class AddBelovedOneViewTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(

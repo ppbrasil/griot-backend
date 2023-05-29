@@ -58,6 +58,18 @@ class UpdateAccountView(generics.UpdateAPIView):
     serializer_class = AccountSerializer
     queryset = Account.objects.all().filter(is_active=True)
 
+class DeleteAccountView(generics.UpdateAPIView):
+    http_method_names = ['delete']
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AccountSerializer
+    queryset = Account.objects.all().filter(is_active=True)
+
+    def delete(self, request, pk):
+        account = self.get_object()
+        account.is_active = False
+        account.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
 class AddBelovedOneToAccountView(generics.CreateAPIView):
     http_method_names = ['post']
     permission_classes = [permissions.IsAuthenticated]
