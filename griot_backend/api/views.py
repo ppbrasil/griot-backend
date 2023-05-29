@@ -92,6 +92,7 @@ class UpdateCharacterView(generics.UpdateAPIView):
     queryset = Character.objects.all().filter(is_active=True)   
 
 class DeleteCharacterView(generics.UpdateAPIView):
+    http_method_names = ['delete']
     serializer_class = CharacterSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = Character.objects.all().filter(is_active=True)
