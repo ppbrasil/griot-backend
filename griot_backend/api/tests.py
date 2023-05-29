@@ -393,6 +393,75 @@ class AccountUpdateAPITest(APITestCase):
         self.account.refresh_from_db()
         self.assertEqual(self.account.name, 'Test Account')
 
+class ListUserAccountsViewsTest(APITestCase):
+    def setUp(self):
+        # Create mainuser
+        self.mainuser = User.objects.create_user(
+            username='mainuser',
+            password='testpassword'
+        )
+        mainuser_profile = Profile.objects.create(user=self.mainuser)
+
+        # Create dummyuser_one
+        self.dummyuser_one = User.objects.create_user(
+            username='dummyuser_one',
+            password='testpassword'
+        )
+        dummyuser_one_profile = Profile.objects.create(user=self.dummyuser_one)
+
+        # Create dummyuser_two
+        self.dummyuser_two = User.objects.create_user(
+            username='dummyuser_two',
+            password='testpassword'
+        )
+        dummyuser_two_profile = Profile.objects.create(user=self.dummyuser_two)
+
+        # Create accounts for mainuser
+        self.account1 = Account.objects.create(
+            owner_user=self.mainuser,
+            name='Account 1'
+        )
+        self.account2 = Account.objects.create(
+            owner_user=self.mainuser,
+            name='Account 2'
+        )
+
+        # Create an account for dummyuser_one
+        self.account3 = Account.objects.create(
+            owner_user=self.dummyuser_one,
+            name='Account 3'
+        )
+
+        # Add mainuser as a beloved_one to dummyuser_one's account
+        self.account3.beloved_ones.add(self.mainuser)
+
+        # Authenticate mainuser
+        self.client.force_authenticate(user=self.mainuser)
+
+    def test_list_accounts(self):
+        url = reverse('list_accounts')
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+
+        # Check if the list has two accounts as owned_accounts
+        self.assertEqual(len(data['owned_accounts']), 2)
+
+        # Check if the list has one account as beloved_accounts
+        self.assertEqual(len(data['beloved_accounts']), 1)
+
+    def test_unauthenticated_user(self):
+        self.client.force_authenticate(user=None)  # Remove authentication
+
+        url = reverse('list_accounts')
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
 class DeleteAccountViewTestCase(APITestCase):
     def setUp(self):
         # Create a test user

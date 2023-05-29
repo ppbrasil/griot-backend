@@ -5,6 +5,7 @@ urlpatterns = [
     path('user/create/', views.CreateUserView.as_view(), name='create_user'),
     path('user/auth/', views.AuthenticateUserView.as_view(), name='authenticate_user'),
     path('user/logout/', views.LogoutView.as_view(), name='logout_user'),
+    path('user/list-accounts/', views.ListUserAccountsViews.as_view(), name='list_accounts'),
     path('profile/update/<int:pk>/', views.UpdateProfileView.as_view(), name='update_profile'),
     path('account/create/', views.CreateAccountView.as_view(), name='create_account'),
     path('account/update/<int:pk>/', views.UpdateAccountView.as_view(), name='update_account'),

@@ -3,7 +3,7 @@ from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 
-from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer, CharacterSerializer
+from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer, CharacterSerializer, UserAccountSerializer
 
 from django.contrib.auth.models import User
 from profiles.models import Profile
@@ -58,6 +58,14 @@ class CreateAccountView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(owner_user=self.request.user)
     
+class ListUserAccountsViews(generics.RetrieveAPIView):
+    http_method_names = ['get']
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserAccountSerializer
+    
+    def get_object(self):
+        return self.request.user
+
 class UpdateAccountView(generics.UpdateAPIView):
     http_method_names = ['patch']
     permission_classes = [IsAuthenticated, IsObjectOwner]

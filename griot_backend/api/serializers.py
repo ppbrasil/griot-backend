@@ -101,6 +101,14 @@ class AccountSerializer(serializers.ModelSerializer):
         
         return super().update(instance, validated_data)
     
+class UserAccountSerializer(serializers.ModelSerializer):
+    owned_accounts = AccountSerializer(many=True, read_only=True)
+    beloved_accounts = AccountSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('owned_accounts', 'beloved_accounts')
+
 class CharacterSerializer(serializers.ModelSerializer):
     memories = serializers.CharField(required=False)
 
