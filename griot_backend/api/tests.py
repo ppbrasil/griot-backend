@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
+from rest_framework.authtoken.models import Token
 from profiles.models import Profile
 from accounts.models import Account
 from characters.models import Character
@@ -279,9 +280,15 @@ class UpdateProfileTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         # Add additional assertions as per your application's unauthorized profile update response.
 
-    def test_invalid_profile_update(self):
+    def test_failing_profile_update(self):
+        # Set the profile's is_active to False
+        profile = Profile.objects.get(id=1)
+        profile.is_active = False
+        profile.save()
+        # print(f'{profile.id}')
+        # print(f'{profile.is_active}')
         data = {
-            'name': '',  # Invalid because name is required
+            'name': 'Updated Name',
             'middle_name': 'Updated Middle Name',
             'last_name': 'Updated Last Name',
             'birth_date': '1990-01-01',
@@ -290,7 +297,8 @@ class UpdateProfileTestCase(APITestCase):
 
         response = self.client.patch(self.update_profile_url, data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class AccountCreateTestCase(APITestCase):
     def setUp(self):

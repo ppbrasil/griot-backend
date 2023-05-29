@@ -37,11 +37,10 @@ class UpdateProfileView(generics.UpdateAPIView):
     http_method_names = ['patch']
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ProfileSerializer
-    queryset = Profile.objects.all()
-    
+        
     def get_object(self):
         user_id = self.kwargs['pk']
-        profile = Profile.objects.get(user__id=user_id)
+        profile = get_object_or_404(Profile, user__id=user_id, is_active=True)
         return profile
 
 class CreateAccountView(generics.CreateAPIView):
