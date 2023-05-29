@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework.response import Response
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.authtoken.models import Token
 from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer, CharacterSerializer
 from profiles.models import Profile
@@ -90,3 +90,14 @@ class UpdateCharacterView(generics.UpdateAPIView):
     serializer_class = CharacterSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = Character.objects.all().filter(is_active=True)   
+
+class DeleteCharacterView(generics.UpdateAPIView):
+    serializer_class = CharacterSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Character.objects.all().filter(is_active=True)
+
+    def delete(self, request, pk):
+        character = self.get_object()
+        character.is_active = False
+        character.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)

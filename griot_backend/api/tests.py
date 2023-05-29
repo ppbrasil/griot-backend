@@ -565,3 +565,59 @@ class CharacterUpdateTestCase(APITestCase):
         self.character.refresh_from_db()
         self.assertEqual(self.character.name, 'John Doe')  # Name should not be updated
         self.assertEqual(self.character.relationship, 'friend')  # Relationship should not be updated
+
+class DeleteCharacterViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpassword'
+        )
+        self.profile = Profile.objects.create(user=self.user)
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+        self.character = Character.objects.create(account=self.account, name='John Doe', relationship='friend')
+        self.client.force_authenticate(user=self.user)
+    
+    def test_delete_existing_character(self):
+        url = reverse('delete_character', args=[self.character.pk])
+        response = self.client.delete(url)
+
+        # Assert the response status code
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Assert that the character is no longer in the database
+        soft_deleted_character = Character.objects.get(pk=self.character.pk)
+        self.assertFalse(soft_deleted_character.is_active)
+
+    def test_delete_non_existing_character(self):
+        non_existing_pk = 999  # Assuming this ID doesn't exist in the database
+        url = reverse('delete_character', args=[non_existing_pk])
+        response = self.client.delete(url)
+
+        # Assert the response status code
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Assert that the character count in the database remains unchanged
+        self.assertTrue(Character.objects.filter(pk=self.character.pk).exists())
+
+    def test_delete_character_with_invalid_id(self):
+        invalid_pk = 1223235
+        url = reverse('delete_character', args=[invalid_pk])
+        response = self.client.delete(url)
+
+        # Assert the response status code
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Assert that the character count in the database remains unchanged
+        self.assertTrue(Character.objects.filter(pk=self.character.pk).exists())
+
+    def test_delete_character_authentication(self):
+        # Assuming authentication is required for deleting characters
+        self.client.force_authenticate(user=None)  # Simulate unauthenticated user
+        url = reverse('delete_character', args=[self.character.pk])
+        response = self.client.delete(url)
+
+        # Assert the response status code
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Assert that the character count in the database remains unchanged
+        self.assertTrue(Character.objects.filter(pk=self.character.pk).exists())

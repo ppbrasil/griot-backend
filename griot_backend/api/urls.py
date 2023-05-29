@@ -12,4 +12,5 @@ urlpatterns = [
     path('account/remove-beloved-one/<int:pk>/<int:beloved_one_id>/', views.RemoveBelovedOneFromAccountView.as_view(), name='remove_beloved_one'),
     path('character/create/', views.CreateCharacterView.as_view(), name='create_character'),
     path('character/update/<int:pk>/', views.UpdateCharacterView.as_view(), name='update_character'),
+    path('character/delete/<int:pk>/', views.DeleteCharacterView.as_view(), name='delete_character'),
 ]
