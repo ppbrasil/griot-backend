@@ -151,7 +151,6 @@ class AuthenticationTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('token', response.data)
 
-
     def test_invalid_password(self):
         data = {
             'username': 'testuser',
@@ -161,7 +160,6 @@ class AuthenticationTestCase(APITestCase):
         response = self.client.post(self.authenticate_user_url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
 
     def test_invalid_username(self):
         data = {
@@ -179,6 +177,23 @@ class AuthenticationTestCase(APITestCase):
         response = self.client.post(self.authenticate_user_url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_inactive_user_authentication(self):
+        # Set user as inactive
+        user = User.objects.get(username='testuser')
+        user.is_active = False
+        user.save()
+
+        data = {
+            'username': 'testuser',
+            'password': 'testpassword',
+        }
+
+        response = self.client.post(self.authenticate_user_url, data, format='json')
+
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn('token', response.data)
 
 class LogoutTestCase(APITestCase):
     def setUp(self):
