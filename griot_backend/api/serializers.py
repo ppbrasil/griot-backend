@@ -6,6 +6,7 @@ from django.core.validators import validate_email
 from rest_framework import serializers, exceptions
 from profiles.models import Profile
 from accounts.models import Account
+from characters.models import Character
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -95,3 +96,11 @@ class AccountSerializer(serializers.ModelSerializer):
             raise exceptions.PermissionDenied("Updating beloved_ones field is not allowed.")
         
         return super().update(instance, validated_data)
+    
+
+class CharacterSerializer(serializers.ModelSerializer):
+    memories = serializers.CharField(required=False)
+
+    class Meta:
+        model = Character
+        fields = '__all__'

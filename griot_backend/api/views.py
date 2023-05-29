@@ -2,9 +2,10 @@ from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import generics, permissions
 from rest_framework.authtoken.models import Token
-from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer
+from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer, CharacterSerializer
 from profiles.models import Profile
 from accounts.models import Account
+from characters.models import Character
 from django.shortcuts import get_object_or_404
 
 class CreateUserView(generics.CreateAPIView):
@@ -52,7 +53,6 @@ class CreateAccountView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(owner_user=self.request.user)
     
-
 class UpdateAccountView(generics.UpdateAPIView):
     http_method_names = ['patch']
     permission_classes = [permissions.IsAuthenticated]
@@ -83,3 +83,11 @@ class RemoveBelovedOneFromAccountView(generics.CreateAPIView):
         account.beloved_ones.remove(beloved_one)
         return Response({'message': 'Beloved one removed successfully.'})
 
+class CreateCharacterView(generics.CreateAPIView):
+    serializer_class = CharacterSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class UpdateCharacterView(generics.UpdateAPIView):
+    serializer_class = CharacterSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Character.objects.all()   
