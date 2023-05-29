@@ -280,26 +280,6 @@ class UpdateProfileTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         # Add additional assertions as per your application's unauthorized profile update response.
 
-    def test_failing_profile_update(self):
-        # Set the profile's is_active to False
-        profile = Profile.objects.get(id=1)
-        profile.is_active = False
-        profile.save()
-        # print(f'{profile.id}')
-        # print(f'{profile.is_active}')
-        data = {
-            'name': 'Updated Name',
-            'middle_name': 'Updated Middle Name',
-            'last_name': 'Updated Last Name',
-            'birth_date': '1990-01-01',
-            'gender': 'other',
-        }
-
-        response = self.client.patch(self.update_profile_url, data, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-
 class AccountCreateTestCase(APITestCase):
     def setUp(self):
         # Create a test user
@@ -395,6 +375,24 @@ class AccountUpdateAPITest(APITestCase):
         # Assert that the owner_user field remains unchanged in the database
         self.account.refresh_from_db()
         self.assertEqual(self.account.owner_user, self.user)
+
+    def test_update_inactive_account(self):
+        url = reverse('update_account', args=[self.account.pk]) 
+
+        account = Account.objects.get(id=self.account.pk)
+        account.is_active = False
+        account.save()
+
+        # Send a PATCH request to update only the name field
+        new_name = 'Failing update Account Name'
+        data = {'name': new_name}
+        response = self.client.patch(url, data)
+
+        # Check the response status code and updated name value in the database
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.account.refresh_from_db()
+        self.assertEqual(self.account.name, 'Test Account')
+
 
 class AddBelovedOneViewTest(APITestCase):
     def setUp(self):

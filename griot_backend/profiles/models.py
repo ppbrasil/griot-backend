@@ -41,7 +41,6 @@ class Profile(models.Model):
     language = models.CharField(max_length=10, choices=LANGUAGE_CHOICES)
     timezone = models.CharField(max_length=50, choices=TIMEZONE_CHOICES)
 
-    is_active = models.BooleanField(default=True, null=False, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

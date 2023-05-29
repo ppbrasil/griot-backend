@@ -40,7 +40,7 @@ class UpdateProfileView(generics.UpdateAPIView):
         
     def get_object(self):
         user_id = self.kwargs['pk']
-        profile = get_object_or_404(Profile, user__id=user_id, is_active=True)
+        profile = Profile.objects.get(user__id=user_id)
         return profile
 
 class CreateAccountView(generics.CreateAPIView):
@@ -56,7 +56,7 @@ class UpdateAccountView(generics.UpdateAPIView):
     http_method_names = ['patch']
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AccountSerializer
-    queryset = Account.objects.all()
+    queryset = Account.objects.all().filter(is_active=True)
 
 class AddBelovedOneToAccountView(generics.CreateAPIView):
     http_method_names = ['post']
