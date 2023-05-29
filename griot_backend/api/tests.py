@@ -4,6 +4,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 from profiles.models import Profile
 from accounts.models import Account
+from characters.models import Character
 
 class UserCreationTestCase(APITestCase):
     def test_successful_user_creation(self):
@@ -447,3 +448,73 @@ class RemoveBelovedOneToAccountViewTest(APITestCase):
         # Assert the response status code and message
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+class CharacterCreateTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpassword'
+        )
+        self.profile = Profile.objects.create(user=self.user)
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_character(self):
+        url = reverse('create_character')
+        data = {
+            'account': self.account.id,
+            'name': 'John Doe',
+            'relationship': 'friend',
+        }
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Character.objects.count(), 1)
+        self.assertEqual(Character.objects.first().name, 'John Doe')
+
+    def test_create_character_unauthorized(self):
+        url = reverse('create_character')
+        data = {
+            'account': self.account.id,
+            'name': 'Jane Smith',
+            'relationship': 'colleague',
+        }
+        self.client.force_authenticate(user=None)  # Remove authentication
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(Character.objects.count(), 0)  # No new characters should be created
+
+class CharacterUpdateTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpassword'
+        )
+        self.profile = Profile.objects.create(user=self.user)
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+        self.character = Character.objects.create(account=self.account, name='John Doe', relationship='friend')
+        self.client.force_authenticate(user=self.user)
+
+    def test_update_character(self):
+        url = reverse('update_character', kwargs={'pk': self.character.pk})
+        data = {
+            'name': 'John Smith',
+            'relationship': 'family',
+        }
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.character.refresh_from_db()
+        self.assertEqual(self.character.name, 'John Smith')
+        self.assertEqual(self.character.relationship, 'family')
+
+    def test_update_character_unauthorized(self):
+        url = reverse('update_character', kwargs={'pk': self.character.pk})
+        data = {
+            'name': 'Jane Smith',
+            'relationship': 'colleague',
+        }
+        self.client.force_authenticate(user=None)  # Remove authentication
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.character.refresh_from_db()
+        self.assertEqual(self.character.name, 'John Doe')  # Name should not be updated
+        self.assertEqual(self.character.relationship, 'friend')  # Relationship should not be updated
