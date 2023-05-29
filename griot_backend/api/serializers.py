@@ -74,17 +74,24 @@ class AuthenticationSerializer(serializers.Serializer):
         return data
     
 class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Profile
         fields = '__all__'
 
 class AccountSerializer(serializers.ModelSerializer):
     owner_user = serializers.ReadOnlyField(source='owner_user.id')
+    beloved_ones_profiles = serializers.SerializerMethodField()
     
     class Meta:
         model = Account
         fields = '__all__'
-        # fields = ('name', 'created_at', 'updated_at')
+
+    def get_beloved_ones_profiles(self, instance):
+        # This method gets the Profile objects related to the 'beloved_ones' Users.
+        profiles = Profile.objects.filter(user__in=instance.beloved_ones.all())
+        return ProfileSerializer(profiles, many=True).data
 
     def update(self, instance, validated_data):
         if 'owner_user' in self.initial_data:

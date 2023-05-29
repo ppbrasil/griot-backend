@@ -534,6 +534,54 @@ class RemoveBelovedOneToAccountViewTest(APITestCase):
         # Assert the response status code and message
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+class ListBelovedOneFromAccountViewTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser', 
+            password='testpassword'
+        )
+        self.profile = Profile.objects.create(user=self.user, name='John')
+
+        self.beloved_user_1 = User.objects.create_user(
+            username='beloved_one', 
+            password='testpassword'
+        )
+        self.profile_belove_1 = Profile.objects.create(user=self.beloved_user_1, name='Rita')
+
+        self.beloved_user_2 = User.objects.create_user(
+            username='beloved_two', 
+            password='testpassword'
+        )
+        self.profile_belove_2 = Profile.objects.create(user=self.beloved_user_2, name='Ramirez')
+
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+        self.account.beloved_ones.add(self.beloved_user_1)
+        self.account.beloved_ones.add(self.beloved_user_2)
+
+    def test_list_beloved_ones(self):
+        # Ensure the endpoint returns a list of beloved ones for a valid account
+        url = reverse('list_beloved_ones', kwargs={'pk': self.account.pk})
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['beloved_ones']), 2)
+        self.assertEqual(response.data['beloved_ones_profiles'][0]['name'], 'Rita')
+        self.assertEqual(response.data['beloved_ones_profiles'][1]['name'], 'Ramirez')
+        print(response.data)
+
+    def test_list_beloved_ones_unauthenticated(self):
+        # Ensure unauthenticated requests are denied access
+        url = reverse('list_beloved_ones', kwargs={'pk': self.account.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_list_beloved_ones_invalid_account(self):
+        # Ensure the endpoint returns a 404 status code for an invalid account
+        url = reverse('list_beloved_ones', kwargs={'pk': 9999})
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
 class CharacterCreateTestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(

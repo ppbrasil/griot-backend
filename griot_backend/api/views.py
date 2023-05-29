@@ -100,6 +100,13 @@ class RemoveBelovedOneFromAccountView(generics.CreateAPIView):
         account.beloved_ones.remove(beloved_one)
         return Response({'message': 'Beloved one removed successfully.'})
 
+class ListBelovedOneFromAccountView(generics.RetrieveAPIView):
+    http_method_names = ['get']
+    queryset = Account.objects.all().filter(is_active=True)
+    permission_classes = [IsAuthenticated, IsObjectOwner]
+    serializer_class = AccountSerializer
+    lookup_field = 'pk'
+
 class CreateCharacterView(generics.CreateAPIView):
     serializer_class = CharacterSerializer
     permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
