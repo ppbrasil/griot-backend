@@ -49,7 +49,6 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user
 
-
 class AuthenticationSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
@@ -74,12 +73,10 @@ class AuthenticationSerializer(serializers.Serializer):
         data['user'] = user
         return data
     
-
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = '__all__'
-
 
 class AccountSerializer(serializers.ModelSerializer):
     owner_user = serializers.ReadOnlyField(source='owner_user.id')
@@ -97,7 +94,6 @@ class AccountSerializer(serializers.ModelSerializer):
         
         return super().update(instance, validated_data)
     
-
 class CharacterSerializer(serializers.ModelSerializer):
     memories = serializers.CharField(required=False)
 

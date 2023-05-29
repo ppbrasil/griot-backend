@@ -8,6 +8,7 @@ class Account(models.Model):
     name = models.CharField(max_length=255)
     beloved_ones = models.ManyToManyField(User, related_name="beloved_accounts", blank=True)
 
+    is_active = models.BooleanField(default=True, null=False, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
