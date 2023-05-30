@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
@@ -8,6 +9,7 @@ from profiles.models import Profile
 from accounts.models import Account
 from characters.models import Character
 from memories.models import Memory, Video
+
 
 
 # User and Auth related tests
@@ -877,7 +879,52 @@ class MemoryRetrieveTestCase(APITestCase):
         self.assertEqual(response.data['videos'][0]['url'], f'http://testserver{self.video.file.url}')
 
 class MemoryUpdateTestCase(APITestCase):
-    pass
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser', 
+            password='testpass'
+        )
+        self.account = Account.objects.create(owner_user=self.user, name='TestAccount')
+        self.memory = Memory.objects.create(title="Test memory", account=self.account)
+        self.update_url = reverse('update_memory', kwargs={'pk': self.memory.id})
+
+        self.client.force_authenticate(user=self.user)
+
+    def test_update_memory(self):
+
+        new_title = "Updated Test memory"
+        data = {'title': new_title}
+        response = self.client.patch(self.update_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.memory.refresh_from_db()
+        self.assertEqual(self.memory.title, new_title)
+
+    def test_update_memory_not_authenticated(self):
+        self.client.logout()  # log out the user
+
+        new_title = "Updated Test memory"
+        data = {'title': new_title}
+        response = self.client.patch(self.update_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_update_memory_not_owner(self):
+        self.client.logout()
+
+        other_user = User.objects.create_user(
+            username='otheruser',
+            password='otherpass'
+            )
+        
+        self.client.force_authenticate(user=other_user)  # log in as a different user
+
+        new_title = "Updated Test memory"
+        data = {'title': new_title}
+        response = self.client.patch(self.update_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 class MemoryDeleteTestCase(APITestCase):
     pass
@@ -890,6 +937,8 @@ class MemoryAddCharacterTestCase(APITestCase):
 
 class MemoryRemoveCharacterTestCase(APITestCase):
     pass
+
+# Video related tests
 
 class VideoCreateTestCase(APITestCase):
 
