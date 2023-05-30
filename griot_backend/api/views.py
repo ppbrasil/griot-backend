@@ -161,9 +161,10 @@ class CreateVideoMemoryView(generics.CreateAPIView):
         serializer.save(memory=memory, file=self.request.data.get('file'))
 
 class RetrieveVideoMemoryView(generics.RetrieveAPIView):
+    http_method_names =['get']
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
-    permission_classes = [IsAuthenticated, VideoPermissions]
+    permission_classes = [VideoPermissions]
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

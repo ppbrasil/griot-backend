@@ -510,17 +510,6 @@ class DeleteAccountViewTestCase(APITestCase):
         # Assert that the account count in the database remains unchanged
         self.assertTrue(Account.objects.filter(pk=self.account.pk).exists())
 
-    # def test_delete_account_with_invalid_id(self):
-    #     invalid_pk = 'invalid'  # Assuming an invalid account ID
-    #     url = reverse('delete_account', args=[invalid_pk])
-    #     response = self.client.delete(url)
-
-    #     # Assert the response status code
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    #     # Assert that the account count in the database remains unchanged
-    #     self.assertTrue(Account.objects.filter(pk=self.account.pk).exists())
-
     def test_delete_account_authentication(self):
         # Simulate an unauthenticated user
         self.client.force_authenticate(user=None)
@@ -873,7 +862,7 @@ class MemoryAddCharacterTestCase(APITestCase):
 class MemoryRemoveCharacterTestCase(APITestCase):
     pass
 
-class CreateVideoTestCase(APITestCase):
+class VideoCreateTestCase(APITestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
@@ -950,6 +939,46 @@ class CreateVideoTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Video.objects.count(), 0)
+
+class RetrieveVideoTestCase(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user2 = User.objects.create_user(username='testuser2', password='testpass2')
+
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+        # Assuming you have a Memory object to associate with the Video
+        self.memory = Memory.objects.create(title="Test memory", account=self.account)
+
+        self.video_file = SimpleUploadedFile("file.mp4", b"file_content", content_type="video/mp4")
+        self.video = Video.objects.create(memory=self.memory, file=self.video_file)
+
+    def test_retrieve_video_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('retrieve_memory_video', kwargs={'pk': self.video.id})
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['url'], f'http://testserver{self.video.file.url}')
+
+    def test_retrieve_video_not_authenticated(self):
+        url = reverse('retrieve_memory_video', kwargs={'pk': self.video.id})
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_retrieve_video_not_authorized(self):
+        self.client.login(username='testuser2', password='testpass2')
+        url = reverse('retrieve_memory_video', kwargs={'pk': self.video.id})
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class VideoRetrieveTestCase(APITestCase):
+    pass
 
 class VideoDeleteTestCase(APITestCase):
     pass
