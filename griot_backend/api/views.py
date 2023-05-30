@@ -149,6 +149,12 @@ class CreateMemoryView(generics.CreateAPIView):
     serializer_class = MemorySerializer
     permission_classes = [IsAuthenticated, MemoryPermissions]
 
+class RetrieveMemoryView(generics.RetrieveAPIView):
+    queryset = Memory.objects.all()
+    serializer_class = MemorySerializer
+    permission_classes = [MemoryPermissions]
+
+
 class CreateVideoMemoryView(generics.CreateAPIView):
     http_method_names =['post']
     queryset = Video.objects.all()

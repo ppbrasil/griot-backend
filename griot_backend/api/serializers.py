@@ -117,12 +117,26 @@ class CharacterSerializer(serializers.ModelSerializer):
         model = Character
         fields = '__all__'
 
-class MemorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Memory
-        fields = '__all__'
-
 class VideoSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(required=False)
+    url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Video
-        fields = ('memory', 'file',)
+        fields = '__all__'
+        
+    def get_url(self, obj):
+        request = self.context.get('request')
+        return request.build_absolute_uri(obj.file.url)
+
+class MemorySerializer(serializers.ModelSerializer):
+    videos = VideoSerializer(many=True, read_only=True)
+    id = serializers.ReadOnlyField(required=False)
+    
+    class Meta:
+        model = Memory
+        fields = ('id', 'account', 'title', 'videos')
+
+
+
+

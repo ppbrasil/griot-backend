@@ -17,6 +17,7 @@ urlpatterns = [
     path('character/update/<int:pk>/', views.UpdateCharacterView.as_view(), name='update_character'),
     path('character/delete/<int:pk>/', views.DeleteCharacterView.as_view(), name='delete_character'),
     path('memory/create/', views.CreateMemoryView.as_view(), name='create_memory'),
+    path('memory/retrieve/<int:pk>/', views.RetrieveMemoryView.as_view(), name='retrieve_memory'),
     path('memory/video/upload/', views.CreateVideoMemoryView.as_view(), name='upload_memory_video'),
     path('memory/video/retrieve/<int:pk>/', views.RetrieveVideoMemoryView.as_view(), name='retrieve_memory_video'),
 ]

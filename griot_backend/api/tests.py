@@ -844,8 +844,37 @@ class MemoryCreateTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Memory.objects.count(), 0)
 
-class MemoryRetieveTestCase(APITestCase):
-    pass
+class MemoryRetrieveTestCase(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.account = Account.objects.create(owner_user=self.user, name='TestAccount')
+        self.memory = Memory.objects.create(title="Test memory", account=self.account)
+        self.memory_with_video = Memory.objects.create(title="Test memory with video", account=self.account)
+
+        self.video_file = SimpleUploadedFile("file.mp4", b"file_content", content_type="video/mp4")
+        self.video = Video.objects.create(memory=self.memory_with_video, file=self.video_file)
+
+    def test_retrieve_memory_without_video(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('retrieve_memory', kwargs={'pk': self.memory.id})
+
+        response = self.client.get(url)
+
+        print(f'Data: {response.data}\n\n')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.memory.id)
+        self.assertEqual(response.data['videos'], [])
+
+    def test_retrieve_memory_with_video(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('retrieve_memory', kwargs={'pk': self.memory_with_video.id})
+
+        response = self.client.get(url)
+        print(f'Data: {response.data}\n\n')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.memory_with_video.id)
+        self.assertEqual(response.data['videos'][0]['url'], f'http://testserver{self.video.file.url}')
 
 class MemoryUpdateTestCase(APITestCase):
     pass
