@@ -1207,11 +1207,37 @@ class RetrieveVideoTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-class VideoRetrieveTestCase(APITestCase):
-    pass
-
 class VideoDeleteTestCase(APITestCase):
-    pass
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.another_user = User.objects.create_user(username='anotheruser', password='anotherpass')
+        self.account = Account.objects.create(owner_user=self.user, name='TestAccount')
+        self.memory = Memory.objects.create(title="Test memory", account=self.account)
+        self.video = Video.objects.create(memory=self.memory, file='dummy_file.mp4')
+
+        self.delete_video_url = reverse('delete_video', kwargs={'pk': self.video.id})
+
+        self.client.force_authenticate(user=self.user)
+
+    def test_delete_video(self):
+        response = self.client.delete(self.delete_video_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_delete_video_not_authenticated(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.delete(self.delete_video_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_delete_video_non_owner(self):
+        self.client.force_authenticate(user=self.another_user)
+        response = self.client.delete(self.delete_video_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_nonexistent_video(self):
+        self.client.force_authenticate(user=self.user)
+        non_existent_video_url = reverse('delete_video', kwargs={'pk': 9999})
+        response = self.client.delete(non_existent_video_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class VideoProvideURLTestCase(APITestCase):
     pass
