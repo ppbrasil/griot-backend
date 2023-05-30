@@ -554,7 +554,7 @@ class AddBelovedOneViewTest(APITestCase):
         )
 
         url = reverse('add_beloved_one', kwargs={'pk': self.account.pk, 'beloved_one_id': beloved_one.pk})
-        response = self.client.post(url)
+        response = self.client.patch(url)
 
         # Assert the response status code and message
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -573,6 +573,7 @@ class RemoveBelovedOneToAccountViewTest(APITestCase):
             password='testpassword'
         )
         Profile.objects.create(user=self.user)
+       
         self.account = Account.objects.create(owner_user=self.user, name='Test Account')
         self.client.force_authenticate(user=self.user)
         
@@ -587,7 +588,7 @@ class RemoveBelovedOneToAccountViewTest(APITestCase):
 
         # Make a POST request to remove the beloved_one from the account
         url = reverse('remove_beloved_one', kwargs={'pk': self.account.pk, 'beloved_one_id': self.beloved_one.pk})
-        response = self.client.post(url)
+        response = self.client.patch(url)
 
         # Assert the response status code and message
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -604,7 +605,7 @@ class RemoveBelovedOneToAccountViewTest(APITestCase):
         # Make a POST request to remove a beloved_one not present in the account
         invalid_beloved_one_id = self.beloved_one.pk + 1
         url = reverse('remove_beloved_one', kwargs={'pk': self.account.pk, 'beloved_one_id': invalid_beloved_one_id})
-        response = self.client.post(url)
+        response = self.client.patch(url)
 
         # Assert the response status code and message
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -933,10 +934,9 @@ class CreateVideoTestCase(APITestCase):
         }
 
         response = self.client.post(url, data, format='multipart')
-        print(f'VIDEO Request Data: {response.data}')
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Video.objects.count(), 0)
-
 
     def test_create_video_no_memory(self):
         self.client.force_authenticate(user=self.user)

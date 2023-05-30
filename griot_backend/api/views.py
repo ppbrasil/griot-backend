@@ -12,8 +12,13 @@ from characters.models import Character
 from memories.models import Memory, Video
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from griot_backend.permissions import IsObjectOwner, IsBelovedOne, IsRelatedAccountOwner, IsRelatedAccountBelovedOne
-
+from griot_backend.permissions import (
+    ProfilePermissions, 
+    AccountPermissions, 
+    CharacterPermissions, 
+    MemoryPermissions, 
+    VideoPermissions,
+)
 
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -42,7 +47,7 @@ class LogoutView(generics.GenericAPIView):
 
 class UpdateProfileView(generics.UpdateAPIView):
     http_method_names = ['patch']
-    permission_classes = [IsAuthenticated, IsObjectOwner]
+    permission_classes = [IsAuthenticated, ProfilePermissions]
     serializer_class = ProfileSerializer
         
     def get_object(self):
@@ -52,7 +57,7 @@ class UpdateProfileView(generics.UpdateAPIView):
 
 class CreateAccountView(generics.CreateAPIView):
     http_method_names = ['post']
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, AccountPermissions]
     serializer_class = AccountSerializer
     queryset = Account.objects.all()
 
@@ -69,13 +74,13 @@ class ListUserAccountsViews(generics.RetrieveAPIView):
 
 class UpdateAccountView(generics.UpdateAPIView):
     http_method_names = ['patch']
-    permission_classes = [IsAuthenticated, IsObjectOwner]
+    permission_classes = [IsAuthenticated, AccountPermissions]
     serializer_class = AccountSerializer
     queryset = Account.objects.all().filter(is_active=True)
 
 class DeleteAccountView(generics.UpdateAPIView):
     http_method_names = ['delete']
-    permission_classes = [IsAuthenticated, IsObjectOwner]
+    permission_classes = [IsAuthenticated, AccountPermissions]
     serializer_class = AccountSerializer
     queryset = Account.objects.all().filter(is_active=True)
 
@@ -85,24 +90,24 @@ class DeleteAccountView(generics.UpdateAPIView):
         account.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
-class AddBelovedOneToAccountView(generics.CreateAPIView):
-    http_method_names = ['post']
-    permission_classes = [IsAuthenticated, IsObjectOwner]
+class AddBelovedOneToAccountView(generics.UpdateAPIView):
+    http_method_names = ['patch']
+    permission_classes = [AccountPermissions]
     queryset = Account.objects.all()
 
-    def create(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         account = self.get_object()
         beloved_one_id = kwargs.get('beloved_one_id')
         beloved_one = get_object_or_404(User, pk=beloved_one_id)
         account.beloved_ones.add(beloved_one)
         return Response({'message': 'Beloved one added successfully.'})
     
-class RemoveBelovedOneFromAccountView(generics.CreateAPIView):
-    http_method_names = ['post']
-    permission_classes = [IsAuthenticated, IsObjectOwner]
+class RemoveBelovedOneFromAccountView(generics.UpdateAPIView):
+    http_method_names = ['patch']
+    permission_classes = [AccountPermissions]
     queryset = Account.objects.all()
 
-    def create(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         account = self.get_object()
         beloved_one_id = kwargs.get('beloved_one_id')
         beloved_one = get_object_or_404(User, pk=beloved_one_id)
@@ -112,24 +117,25 @@ class RemoveBelovedOneFromAccountView(generics.CreateAPIView):
 class ListBelovedOneFromAccountView(generics.RetrieveAPIView):
     http_method_names = ['get']
     queryset = Account.objects.all().filter(is_active=True)
-    permission_classes = [IsAuthenticated, IsObjectOwner]
+    permission_classes = [IsAuthenticated, AccountPermissions]
     serializer_class = AccountSerializer
     lookup_field = 'pk'
 
 class CreateCharacterView(generics.CreateAPIView):
     http_method_names = ['post']
     serializer_class = CharacterSerializer
-    permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
+    permission_classes = [IsAuthenticated, CharacterPermissions]
 
 class UpdateCharacterView(generics.UpdateAPIView):
+    http_method_names = ['patch']
     serializer_class = CharacterSerializer
-    permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
+    permission_classes = [IsAuthenticated, CharacterPermissions]
     queryset = Character.objects.all().filter(is_active=True)   
 
 class DeleteCharacterView(generics.UpdateAPIView):
     http_method_names = ['delete']
     serializer_class = CharacterSerializer
-    permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
+    permission_classes = [IsAuthenticated, CharacterPermissions]
     queryset = Character.objects.all().filter(is_active=True)
 
     def delete(self, request, pk):
@@ -141,14 +147,31 @@ class DeleteCharacterView(generics.UpdateAPIView):
 class CreateMemoryView(generics.CreateAPIView):
     http_method_names = ['post']
     serializer_class = MemorySerializer
-    permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
+    permission_classes = [IsAuthenticated, MemoryPermissions]
 
 class CreateVideoMemoryView(generics.CreateAPIView):
+    http_method_names =['post']
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
-    permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
+    permission_classes = [IsAuthenticated, MemoryPermissions]
 
     def perform_create(self, serializer):
         memory = Memory.objects.get(id=self.request.data.get('memory'))
+        self.check_object_permissions(self.request, memory)
         serializer.save(memory=memory, file=self.request.data.get('file'))
 
+class RetrieveVideoMemoryView(generics.RetrieveAPIView):
+    queryset = Video.objects.all()
+    serializer_class = VideoSerializer
+    permission_classes = [IsAuthenticated, VideoPermissions]
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # For local development with Django's built-in server, you can use this:
+        video_url = request.build_absolute_uri(instance.file.url)
+
+        # In production, with AWS S3, you would use something like this instead:
+        # video_url = generate_presigned_url(instance.file.name)
+
+        return Response({"url": video_url})
