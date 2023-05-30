@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 from rest_framework.authtoken.models import Token
+from django.core.files.uploadedfile import SimpleUploadedFile
 from profiles.models import Profile
 from accounts.models import Account
 from characters.models import Character
@@ -871,8 +872,84 @@ class MemoryAddCharacterTestCase(APITestCase):
 class MemoryRemoveCharacterTestCase(APITestCase):
     pass
 
-class VideoUploadTestCase(APITestCase):
-    pass
+class CreateVideoTestCase(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser', 
+            password='testpass'
+        )
+
+        self.profile_user_1 = Profile.objects.create(user=self.user)
+
+        self.user2 = User.objects.create_user(
+            username='testuser2', 
+            password='testpass2'
+        )
+
+        self.profile_user_2 = Profile.objects.create(user=self.user2)
+
+        self.account = Account.objects.create(owner_user=self.user, name='Test Account')
+
+        self.memory = Memory.objects.create(title="Test memory", account=self.account)
+        
+        self.video_file = SimpleUploadedFile("file.mp4", b"file_content", content_type="video/mp4")
+
+    def test_create_video(self):
+        self.client.force_authenticate(user=self.user)
+
+        url = reverse('upload_memory_video')
+        data = {
+            'memory': self.memory.id, 
+            'file': self.video_file
+        }
+
+        response = self.client.post(url, data, format='multipart')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Video.objects.count(), 1)
+        self.assertEqual(Video.objects.get().memory.id, self.memory.id)
+
+    def test_create_video_not_authenticated(self):
+
+        url = reverse('upload_memory_video')
+        data = {
+            'memory': self.memory.id, 
+            'file': self.video_file
+        }
+
+        response = self.client.post(url, data, format='multipart')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(Video.objects.count(), 0)
+
+    def test_create_video_not_authorized(self):
+        self.client.force_authenticate(user=self.user2)
+
+        url = reverse('upload_memory_video')
+        data = {
+            'memory': self.memory.id, 
+            'file': self.video_file
+        }
+
+        response = self.client.post(url, data, format='multipart')
+        print(f'VIDEO Request Data: {response.data}')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Video.objects.count(), 0)
+
+
+    def test_create_video_no_memory(self):
+        self.client.force_authenticate(user=self.user)
+
+        url = reverse('upload_memory_video')
+        data = {
+            'file': self.video_file
+        }
+
+        response = self.client.post(url, data, format='multipart')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Video.objects.count(), 0)
 
 class VideoDeleteTestCase(APITestCase):
     pass

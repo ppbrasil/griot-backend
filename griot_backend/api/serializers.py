@@ -118,7 +118,11 @@ class CharacterSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class MemorySerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = Memory
         fields = '__all__'
+
+class VideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = ('memory', 'file',)

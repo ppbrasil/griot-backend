@@ -17,5 +17,6 @@ urlpatterns = [
     path('character/update/<int:pk>/', views.UpdateCharacterView.as_view(), name='update_character'),
     path('character/delete/<int:pk>/', views.DeleteCharacterView.as_view(), name='delete_character'),
     path('memory/create/', views.CreateMemoryView.as_view(), name='create_memory'),
+    path('memory/video/upload/', views.CreateVideoMemoryView.as_view(), name='upload_memory_video'),
 ]
 

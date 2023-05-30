@@ -1,6 +1,7 @@
 *.pyc
 *.code-workspace
 *.sqlite3
+*.mp4
 
 griot_backend/venv/
 

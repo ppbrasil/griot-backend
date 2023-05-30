@@ -3,12 +3,13 @@ from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 
-from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer, CharacterSerializer, UserAccountSerializer, MemorySerializer
+from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer, CharacterSerializer, UserAccountSerializer, MemorySerializer, VideoSerializer
 
 from django.contrib.auth.models import User
 from profiles.models import Profile
 from accounts.models import Account
 from characters.models import Character
+from memories.models import Memory, Video
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from griot_backend.permissions import IsObjectOwner, IsBelovedOne, IsRelatedAccountOwner, IsRelatedAccountBelovedOne
@@ -142,5 +143,12 @@ class CreateMemoryView(generics.CreateAPIView):
     serializer_class = MemorySerializer
     permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
 
+class CreateVideoMemoryView(generics.CreateAPIView):
+    queryset = Video.objects.all()
+    serializer_class = VideoSerializer
+    permission_classes = [IsAuthenticated, IsRelatedAccountOwner]
 
+    def perform_create(self, serializer):
+        memory = Memory.objects.get(id=self.request.data.get('memory'))
+        serializer.save(memory=memory, file=self.request.data.get('file'))
 

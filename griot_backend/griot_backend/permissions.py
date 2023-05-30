@@ -1,5 +1,6 @@
 from rest_framework import permissions
 from accounts.models import Account
+from memories.models import Memory
 
 class IsObjectOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -15,12 +16,24 @@ class IsBelovedOne(permissions.BasePermission):
 class IsRelatedAccountOwner(permissions.BasePermission):
     def has_permission(self, request, view):
         account_id = request.data.get('account')
+        memory_id = request.data.get('memory')
+
         if account_id is not None:
             try:
                 account = Account.objects.get(id=account_id)
                 return account.owner_user == request.user
             except Account.DoesNotExist:
                 return False
+
+        if memory_id is not None:
+            try:
+                memory = Memory.objects.get(id=memory_id)
+                account = memory.account
+                return account.owner_user == request.user
+            except Account.DoesNotExist:
+                return False
+
+
         return True
 
     def has_object_permission(self, request, view, obj):
