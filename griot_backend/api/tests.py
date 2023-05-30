@@ -952,9 +952,48 @@ class MemoryDeleteTestCase(APITestCase):
         response = self.client.delete(self.delete_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-
 class MemoryListTestCase(APITestCase):
-    pass
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.beloved_one = User.objects.create_user(username='belovedone', password='testpass')
+        self.other_user = User.objects.create_user(username='otheruser', password='testpass')
+
+        self.account = Account.objects.create(owner_user=self.user, name='TestAccount')
+        self.account.beloved_ones.add(self.beloved_one)
+        self.account.save()
+
+        self.memory1 = Memory.objects.create(title="Test memory1", account=self.account)
+        self.memory2 = Memory.objects.create(title="Test memory2", account=self.account)
+        # Assuming Video model and VideoSerializer have been correctly defined
+        self.video = Video.objects.create(file='path/to/video', memory=self.memory1)
+
+        self.list_url = reverse('list_memories')
+
+    def test_list_memories(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
+    def test_list_memories_beloved_one(self):
+        self.client.force_authenticate(user=self.beloved_one)
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertIn('videos', response.data[0])
+        self.assertEqual(len(response.data[0]['videos']), 1)
+
+    def test_list_memories_other_user(self):
+        self.client.force_authenticate(user=self.other_user)
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+    def test_list_memories_not_authenticated(self):
+        self.client.logout()
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
 class MemoryAddCharacterTestCase(APITestCase):
     pass

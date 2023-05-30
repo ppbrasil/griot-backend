@@ -170,6 +170,25 @@ class DeleteMemoryView(generics.DestroyAPIView):
         instance.is_active = False
         instance.save()
 
+class ListMemoriesView(generics.ListAPIView):
+    serializer_class = MemorySerializer
+    permission_classes = [IsAuthenticated, MemoryPermissions]
+
+    def get_queryset(self):
+        user = self.request.user
+        owner_memories = Memory.objects.filter(
+            is_active=True,
+            account__owner_user=user
+        )
+        beloved_memories = Memory.objects.filter(
+            is_active=True,
+            account__beloved_ones=user
+        )
+        return owner_memories.union(beloved_memories)
+
+
+
+
 class CreateVideoMemoryView(generics.CreateAPIView):
     http_method_names =['post']
     queryset = Video.objects.all()
