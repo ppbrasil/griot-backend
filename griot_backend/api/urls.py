@@ -19,6 +19,7 @@ urlpatterns = [
     path('memory/create/', views.CreateMemoryView.as_view(), name='create_memory'),
     path('memory/retrieve/<int:pk>/', views.RetrieveMemoryView.as_view(), name='retrieve_memory'),
     path('memory/update/<int:pk>/', views.UpdateMemoryView.as_view(), name='update_memory'),
+    path('memory/delete/<int:pk>/', views.DeleteMemoryView.as_view(), name='delete_memory'),
     path('memory/video/upload/', views.CreateVideoMemoryView.as_view(), name='upload_memory_video'),
     path('memory/video/retrieve/<int:pk>/', views.RetrieveVideoMemoryView.as_view(), name='retrieve_memory_video'),
 ]

@@ -925,9 +925,33 @@ class MemoryUpdateTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-
 class MemoryDeleteTestCase(APITestCase):
-    pass
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.other_user = User.objects.create_user(username='otheruser', password='otherpass')
+        self.account = Account.objects.create(owner_user=self.user, name='TestAccount')
+        self.memory = Memory.objects.create(title="Test memory", account=self.account)
+        self.delete_url = reverse('delete_memory', kwargs={'pk': self.memory.id})
+
+        self.client.force_authenticate(user=self.user)
+
+    def test_delete_memory(self):
+        response = self.client.delete(self.delete_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.memory.refresh_from_db()
+        self.assertFalse(self.memory.is_active)
+
+    def test_delete_memory_not_authenticated(self):
+        self.client.logout()
+        response = self.client.delete(self.delete_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_delete_memory_not_owner(self):
+        self.client.logout()
+        self.client.force_authenticate(user=self.other_user)
+        response = self.client.delete(self.delete_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 class MemoryListTestCase(APITestCase):
     pass

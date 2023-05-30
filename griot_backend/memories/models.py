@@ -8,6 +8,7 @@ class Memory(models.Model):
     title = models.CharField(max_length=255)
     # allowed_access = models.ManyToManyField(User, related_name='accessible_memories')
     
+    is_active = models.BooleanField(default=True, null=False, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 

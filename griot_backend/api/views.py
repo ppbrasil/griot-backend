@@ -161,6 +161,14 @@ class UpdateMemoryView(generics.UpdateAPIView):
     serializer_class = MemorySerializer
     permission_classes = [MemoryPermissions]
 
+class DeleteMemoryView(generics.DestroyAPIView):
+    queryset = Memory.objects.all()
+    serializer_class = MemorySerializer
+    permission_classes = [IsAuthenticated, MemoryPermissions]
+
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save()
 
 class CreateVideoMemoryView(generics.CreateAPIView):
     http_method_names =['post']
