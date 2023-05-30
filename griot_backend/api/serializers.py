@@ -111,12 +111,12 @@ class UserAccountSerializer(serializers.ModelSerializer):
         fields = ('owned_accounts', 'beloved_accounts')
 
 class CharacterSerializer(serializers.ModelSerializer):
-    memories = serializers.CharField(required=False)
+    memories = serializers.PrimaryKeyRelatedField(queryset=Memory.objects.all(), many=True, required=False)
 
     class Meta:
         model = Character
         fields = '__all__'
-
+        
 class VideoSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(required=False)
     url = serializers.SerializerMethodField()

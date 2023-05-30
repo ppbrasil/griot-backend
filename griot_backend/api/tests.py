@@ -994,12 +994,101 @@ class MemoryListTestCase(APITestCase):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-
 class MemoryAddCharacterTestCase(APITestCase):
-    pass
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.account = Account.objects.create(owner_user=self.user, name='TestAccount')
+        self.character = Character.objects.create(name="Test Character", account=self.account)
+        self.deactivated_character = Character.objects.create(name="Deactivated Character", account=self.account, is_active=False)
+        self.memory = Memory.objects.create(title="Test memory", account=self.account)
+        self.add_character_url = reverse('add_character_to_memory', kwargs={'pk': self.memory.id})
+
+        self.client.force_authenticate(user=self.user)
+
+    def test_add_character_to_memory(self):
+        data = {'character_id': self.character.id}
+        response = self.client.patch(self.add_character_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(self.character, self.memory.characters.all())
+
+    def test_add_nonexistent_character_to_memory(self):
+        data = {'character_id': 9999}
+        response = self.client.patch(self.add_character_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_add_character_already_in_memory(self):
+        self.memory.characters.add(self.character)
+        self.memory.save()
+
+        data = {'character_id': self.character.id}
+        response = self.client.patch(self.add_character_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.memory.characters.count(), 1)
+
+    def test_add_deactivated_character_to_memory(self):
+        data = {'character_id': self.deactivated_character.id}
+        response = self.client.patch(self.add_character_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class MemoryRemoveCharacterTestCase(APITestCase):
-    pass
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.another_user = User.objects.create_user(username='anotheruser', password='anotherpass')
+        self.account = Account.objects.create(owner_user=self.user, name='TestAccount')
+        self.character = Character.objects.create(name="Test Character", account=self.account)
+        self.memory = Memory.objects.create(title="Test memory", account=self.account)
+        self.memory.characters.add(self.character)
+        self.memory.save()
+
+        self.account.beloved_ones.add(self.another_user)
+        self.account.save()
+
+        self.remove_character_url = reverse('remove_character_from_memory', kwargs={'pk': self.memory.id})
+
+        self.client.force_authenticate(user=self.user)
+
+    def test_remove_character_from_memory(self):
+        data = {'character_id': self.character.id}
+        response = self.client.patch(self.remove_character_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn(self.character, self.memory.characters.all())
+
+    def test_remove_nonexistent_character_from_memory(self):
+        data = {'character_id': 9999}
+        response = self.client.patch(self.remove_character_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_remove_character_not_in_memory(self):
+        another_character = Character.objects.create(name="Another Character", account=self.account)
+
+        data = {'character_id': another_character.id}
+        response = self.client.patch(self.remove_character_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_remove_character_from_memory_not_authenticated(self):
+        self.client.force_authenticate(user=None)
+
+        data = {'character_id': self.character.id}
+        response = self.client.patch(self.remove_character_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_remove_character_from_memory_beloved_one(self):
+        self.client.force_authenticate(user=self.another_user)
+
+        data = {'character_id': self.character.id}
+        response = self.client.patch(self.remove_character_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
 
 # Video related tests
 

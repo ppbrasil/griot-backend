@@ -186,7 +186,51 @@ class ListMemoriesView(generics.ListAPIView):
         )
         return owner_memories.union(beloved_memories)
 
+class AddCharacterToMemoryView(generics.UpdateAPIView):
+    http_method_names = ['patch']
+    queryset = Memory.objects.all()
+    serializer_class = MemorySerializer
+    permission_classes = [MemoryPermissions]
 
+    def patch(self, request, *args, **kwargs):
+        memory = self.get_object()
+        character_id = request.data.get('character_id')
+
+        try:
+            character = Character.objects.get(id=character_id, is_active=True)
+        except Character.DoesNotExist:
+            return Response({"detail": "Character not found."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if character not in memory.characters.all():
+            memory.characters.add(character)
+            memory.save()
+
+        return Response(self.get_serializer(memory).data)
+
+class RemoveCharacterToMemoryView(generics.UpdateAPIView):
+    http_method_names = ['patch']
+    queryset = Memory.objects.all()
+    serializer_class = MemorySerializer
+    permission_classes = [MemoryPermissions]
+
+    def patch(self, request, *args, **kwargs):
+        memory = self.get_object()
+        character_id = request.data.get('character_id')
+
+        try:
+            character = Character.objects.get(id=character_id)
+        except Character.DoesNotExist:
+            return Response({"detail": "Character not found."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if character in memory.characters.all():
+            memory.characters.remove(character)
+            memory.save()
+            return Response(self.get_serializer(memory).data)
+
+        return Response({"detail": "Character not associated with this memory."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        
 
 
 class CreateVideoMemoryView(generics.CreateAPIView):
