@@ -19,5 +19,6 @@ class Video(models.Model):
     memory = models.ForeignKey(Memory, on_delete=models.CASCADE, related_name='videos')
     file = models.FileField(upload_to='videos/')
 
+    is_active = models.BooleanField(default=True, null=False, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

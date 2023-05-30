@@ -229,10 +229,6 @@ class RemoveCharacterToMemoryView(generics.UpdateAPIView):
 
         return Response({"detail": "Character not associated with this memory."}, status=status.HTTP_400_BAD_REQUEST)
 
-
-        
-
-
 class CreateVideoMemoryView(generics.CreateAPIView):
     http_method_names =['post']
     queryset = Video.objects.all()
@@ -246,7 +242,7 @@ class CreateVideoMemoryView(generics.CreateAPIView):
 
 class RetrieveVideoMemoryView(generics.RetrieveAPIView):
     http_method_names =['get']
-    queryset = Video.objects.all()
+    queryset = Video.objects.all().filter(is_active=True)
     serializer_class = VideoSerializer
     permission_classes = [VideoPermissions]
     
@@ -260,3 +256,12 @@ class RetrieveVideoMemoryView(generics.RetrieveAPIView):
         # video_url = generate_presigned_url(instance.file.name)
 
         return Response({"url": video_url})
+
+class DeleteVideoMemoryView(generics.DestroyAPIView):
+    queryset = Video.objects.all()
+    serializer_class = VideoSerializer
+    permission_classes = [VideoPermissions]
+
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save()
