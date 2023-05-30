@@ -136,7 +136,3 @@ class MemorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Memory
         fields = ('id', 'account', 'title', 'videos')
-
-
-
-
