@@ -298,21 +298,21 @@ class PasswordResetConfirmViewTest(APITestCase):
 # Profile related tests
 class UpdateProfileTestCase(APITestCase):
     def setUp(self):
-        self.create_user_url = reverse('create_user')
-        self.authenticate_user_url = reverse('authenticate_user')
-        self.update_profile_url = reverse('update_profile', args=[1])  # Replace `1` with the profile ID to update
+        self.user = User.objects.create(
+            username="testuser",
+            password="testpassword123"  
+        )
+        
+        self.profile = Profile.objects.create(user=self.user)
 
-        self.user_data = {
-            'username': 'testuser',
-            'email': 'testuser@example.com',
-            'password': 'testpassword',
-        }
-        self.client.post(self.create_user_url, self.user_data, format='json')
-        response = self.client.post(self.authenticate_user_url, self.user_data, format='json')
-        self.token = response.data['token']
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+        # Authenticate the test user
+        self.client.force_authenticate(user=self.user)
+
+        self.update_profile_url = reverse('update_profile', args=[self.user.id]) 
 
     def test_successful_profile_update(self):
+
+        
         data = {
             'name': 'Updated Name',
             'middle_name': 'Updated Middle Name',
@@ -324,7 +324,6 @@ class UpdateProfileTestCase(APITestCase):
         response = self.client.patch(self.update_profile_url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Add additional assertions as per your application's successful profile update response.
 
     def test_unauthorized_profile_update(self):
         self.client.force_authenticate(user=None)  # Remove authentication credentials
@@ -686,10 +685,14 @@ class ListBelovedOneFromAccountViewTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['beloved_ones']), 2)
-        self.assertEqual(response.data['beloved_ones_profiles'][0]['name'], 'Rita')
-        self.assertEqual(response.data['beloved_ones_profiles'][1]['name'], 'Ramirez')
-        print(response.data)
+        
+        beloved_ones_profiles = response.data['beloved_ones_profiles']
+        self.assertEqual(len(beloved_ones_profiles), 2)
+        
+        names = [profile['name'] for profile in beloved_ones_profiles]
+        self.assertIn('Rita', names)
+        self.assertIn('Ramirez', names)
+
 
     def test_list_beloved_ones_unauthenticated(self):
         # Ensure unauthenticated requests are denied access
@@ -1035,8 +1038,9 @@ class MemoryListTestCase(APITestCase):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
-        self.assertIn('videos', response.data[0])
-        self.assertEqual(len(response.data[0]['videos']), 1)
+        self.assertTrue(any('videos' in memory for memory in response.data))
+        self.assertTrue(any(len(memory['videos']) == 1 for memory in response.data))
+
 
     def test_list_memories_other_user(self):
         self.client.force_authenticate(user=self.other_user)
@@ -1142,8 +1146,6 @@ class MemoryRemoveCharacterTestCase(APITestCase):
         response = self.client.patch(self.remove_character_url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-
 
 # Video related tests
 

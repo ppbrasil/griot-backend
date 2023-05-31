@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
+from django.contrib.postgres.search import SearchQuery, SearchVector
 
 from .serializers import (
     UserSerializer, 
@@ -88,6 +89,15 @@ class UpdateProfileView(generics.UpdateAPIView):
         user_id = self.kwargs['pk']
         profile = Profile.objects.get(user__id=user_id)
         return profile
+
+class SearchProfileView(generics.ListAPIView):
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        query = self.request.query_params.get('q', '')
+        search_vector = SearchVector('user__email', 'first_name', 'last_name')
+        search_query = SearchQuery(query)
+        return Profile.objects.annotate(search=search_vector).filter(search=search_query)
 
 class CreateAccountView(generics.CreateAPIView):
     http_method_names = ['post']

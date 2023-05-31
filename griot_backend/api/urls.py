@@ -9,6 +9,7 @@ urlpatterns = [
     path('user/password-reset-confirm/<uidb64>/<token>/', views.PasswordResetConfirmView.as_view(), name='reset_password_confirm'),
     path('user/list-accounts/', views.ListUserAccountsViews.as_view(), name='list_accounts'),
     path('profile/update/<int:pk>/', views.UpdateProfileView.as_view(), name='update_profile'),
+    path('profile/list/', views.SearchProfileView.as_view(), name='list-profiles'),
     path('account/create/', views.CreateAccountView.as_view(), name='create_account'),
     path('account/update/<int:pk>/', views.UpdateAccountView.as_view(), name='update_account'),
     path('account/delete/<int:pk>/', views.DeleteAccountView.as_view(), name='delete_account'),

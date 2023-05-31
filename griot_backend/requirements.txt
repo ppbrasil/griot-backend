@@ -5,3 +5,4 @@ requests
 django-cors-headers
 boto3
 Pillow
+psycopg2-binary==2.8.6
