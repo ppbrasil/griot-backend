@@ -9,8 +9,16 @@ services:
   api:
     build:
       context: ./griot_backend/
-    ports:
-      - "8000:8000"
     volumes:
       - ./griot_backend:/api
     entrypoint: ["./entrypoint.sh"]
+  nginx:
+    build:
+      context: ./nginx/
+    ports:
+      - "80:80"
+    volumes:
+      - ./griot_backend/static:/app/static
+      - ./griot_backend/media:/app/media
+    depends_on:
+      - api

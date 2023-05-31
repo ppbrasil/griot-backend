@@ -4,6 +4,7 @@
 *.mp4
 
 griot_backend/venv/
-
+griot_backend/static/
+griot_backend/media/
 **/migrations/
 
