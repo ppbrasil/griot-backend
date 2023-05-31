@@ -1,5 +1,10 @@
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+
 from django.utils import timezone
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes, smart_str 
+
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
@@ -239,6 +244,56 @@ class LogoutTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         # Add additional assertions as per your application's missing token logout response.
+
+class PasswordResetViewTest(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='test', email='test@test.com', password='testpassword')
+        self.url = reverse('reset_password')
+
+    def test_reset_password_with_existing_email(self):
+        response = self.client.post(self.url, {'email': 'test@test.com'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_reset_password_with_non_existent_email(self):
+        response = self.client.post(self.url, {'email': 'nonexistent@test.com'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_reset_password_with_invalid_email(self):
+        response = self.client.post(self.url, {'email': 'invalid-email'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetConfirmViewTest(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='test', email='test@test.com', password='T%R$E#W@Q!')
+        self.uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        self.token = default_token_generator.make_token(self.user)
+        self.url = reverse('reset_password_confirm', kwargs={'uidb64': self.uid, 'token': self.token})
+    def test_reset_password_confirm_with_valid_data(self):
+        data = {
+            'new_password': 'Q!w2e3r4T%',
+            }
+        response = self.client.post(self.url, data=data)
+        print(f'Request: {response.request}\n')
+        print(f'Response data: {response.data}\n')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('Q!w2e3r4T%'))
+
+    def test_reset_password_confirm_with_invalid_data(self):
+        response = self.client.post(self.url, {'new_password': 'short'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_reset_password_confirm_with_invalid_uid(self):
+        url = reverse('reset_password_confirm', kwargs={'uidb64': 'invalid_uid', 'token': self.token})
+        response = self.client.post(url, {'new_password': 'newpassword'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_reset_password_confirm_with_invalid_token(self):
+        url = reverse('reset_password_confirm', kwargs={'uidb64': self.uid, 'token': 'invalid_token'})
+        response = self.client.post(url, {'new_password': 'newpassword'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 # Profile related tests
 class UpdateProfileTestCase(APITestCase):
@@ -1238,9 +1293,3 @@ class VideoDeleteTestCase(APITestCase):
         non_existent_video_url = reverse('delete_video', kwargs={'pk': 9999})
         response = self.client.delete(non_existent_video_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-class VideoProvideURLTestCase(APITestCase):
-    pass
-
-class VideoExpiringURLTestCase(APITestCase):
-    pass

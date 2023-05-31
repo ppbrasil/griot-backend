@@ -3,8 +3,18 @@ from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 
-from .serializers import UserSerializer, AuthenticationSerializer, ProfileSerializer, AccountSerializer, CharacterSerializer, UserAccountSerializer, MemorySerializer, VideoSerializer
-
+from .serializers import (
+    UserSerializer, 
+    AuthenticationSerializer, 
+    PasswordResetSerializer,
+    PasswordResetConfirmSerializer,
+    ProfileSerializer, 
+    AccountSerializer, 
+    CharacterSerializer, 
+    UserAccountSerializer, 
+    MemorySerializer, 
+    VideoSerializer
+)
 from django.contrib.auth.models import User
 from profiles.models import Profile
 from accounts.models import Account
@@ -35,6 +45,30 @@ class AuthenticateUserView(generics.CreateAPIView):
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
         return Response({'token': token.key}, status=200)
+
+class PasswordResetView(generics.GenericAPIView):
+    serializer_class = PasswordResetSerializer
+    permission_classes =[AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": "Password reset e-mail has been sent."}, status=status.HTTP_200_OK)
+
+class PasswordResetConfirmView(generics.GenericAPIView):
+    http_method_names = ['post']
+    serializer_class = PasswordResetConfirmSerializer
+    permission_classes =[AllowAny]
+ 
+    def post(self, request, *args, **kwargs):
+        data = request.data.copy()  
+        data['uidb64'] = self.kwargs['uidb64']
+        data['token'] = self.kwargs['token']
+        serializer = self.get_serializer(data=data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": "Password has been reset with the new password."}, status=status.HTTP_200_OK)
 
 class LogoutView(generics.GenericAPIView):
     http_method_names = ['post']
