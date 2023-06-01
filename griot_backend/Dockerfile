@@ -8,4 +8,6 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8000
 
+RUN chmod 755 api/entrypoint.sh
+
 CMD ["./entrypoint.sh"]
