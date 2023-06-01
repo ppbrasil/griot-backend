@@ -29,7 +29,11 @@ SECRET_KEY = 'django-insecure-nk_g(*9p_rmk503c^rs+gihee$o)colhi9)t2asqv75w(*!ur-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'griot-load-balancer-1658910802.us-east-1.elb.amazonaws.com',
+]
 
 # Application definition
 
