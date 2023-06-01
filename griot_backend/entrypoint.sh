@@ -15,5 +15,9 @@ python manage.py migrate
 python manage.py collectstatic --no-input
 
 # Start the Django development server
-echo "Starting Django development server..."
-python manage.py runserver 0.0.0.0:8000
+# echo "Starting Django development server..."
+# python manage.py runserver 0.0.0.0:8000
+
+# Start the Gunicorn development server
+echo "Starting Gunicorn development server..."
+gunicorn griot_backend.wsgi:application
