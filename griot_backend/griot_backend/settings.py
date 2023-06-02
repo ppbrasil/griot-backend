@@ -112,9 +112,9 @@ WSGI_APPLICATION = 'griot_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'griot-db',
-        'USER': 'griotdb',
-        'PASSWORD': 'dp_pass!',
+        'NAME': 'griotdb',
+        'USER': 'djangodbuser',
+        'PASSWORD': 'DB_Pass!',
         'HOST': 'griot-db.cubmeht6dhdd.us-east-1.rds.amazonaws.com',
         'PORT': '5432',
     }
