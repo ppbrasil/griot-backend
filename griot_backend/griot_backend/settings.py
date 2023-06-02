@@ -115,7 +115,7 @@ DATABASES = {
         'NAME': 'griotdb',
         'USER': 'djangodbuser',
         'PASSWORD': 'DB_Pass!',
-        'HOST': 'griot-db.cubmeht6dhdd.us-east-1.rds.amazonaws.com',
+        'HOST': 'griot-database.cubmeht6dhdd.us-east-1.rds.amazonaws.com',
         'PORT': '5432',
     }
 }
