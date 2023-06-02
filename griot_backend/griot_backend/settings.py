@@ -29,10 +29,19 @@ SECRET_KEY = 'django-insecure-nk_g(*9p_rmk503c^rs+gihee$o)colhi9)t2asqv75w(*!ur-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# ALLOWED_HOSTS = [
+#     'localhost',
+#     '127.0.0.1',
+#     'griot-load-balancer-1658910802.us-east-1.elb.amazonaws.com',
+# ]
+
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'griot-load-balancer-1658910802.us-east-1.elb.amazonaws.com',
+    'www.griot.me',
+    'griot.me',
+    'griot-load-balancer-1658910802.us-east-1.elb.amazonaws.com', 
+    '18.206.170.241'
 ]
 
 # Application definition
@@ -89,16 +98,26 @@ WSGI_APPLICATION = 'griot_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'dbname',
+#         'USER': 'dbuser',
+#         'PASSWORD': 'dbpass',
+#         'HOST': 'db',
+#         'PORT': '5432',
+#     }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dbname',
-        'USER': 'dbuser',
-        'PASSWORD': 'dbpass',
-        'HOST': 'db',
+        'NAME': 'griot-db',
+        'USER': 'griotdb',
+        'PASSWORD': 'dp_pass!',
+        'HOST': 'griot-db.cubmeht6dhdd.us-east-1.rds.amazonaws.com',
         'PORT': '5432',
     }
-
+}
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
