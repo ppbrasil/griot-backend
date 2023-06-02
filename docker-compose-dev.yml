@@ -11,6 +11,9 @@ services:
       context: ./griot_backend/
     volumes:
       - ./griot_backend:/api
+    environment:
+      - DJANGO_SETTINGS_MODULE=griot_backend.settings_dev
+      - ENV=dev
     entrypoint: ["./entrypoint.sh"]
   nginx:
     build:
