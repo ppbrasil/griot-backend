@@ -43,7 +43,8 @@ ALLOWED_HOSTS = [
     'www.griot.me',
     'griot.me',
     'griot-load-balancer-1658910802.us-east-1.elb.amazonaws.com', 
-    '18.206.170.241'
+    '18.206.170.241',
+    '172.31.27.190',
 ]
 
 INSTALLED_APPS = [
