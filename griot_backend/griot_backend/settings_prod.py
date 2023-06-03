@@ -16,9 +16,17 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Define Media configurations
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+# AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = 'griot-memories-data'
+AWS_DEFAULT_ACL = 'private'
+AWS_S3_REGION_NAME = 'us-east-1'  # for example, adjust if your bucket is in a different region
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -44,6 +52,7 @@ INSTALLED_APPS = [
     'accounts',
     'characters',
     'memories',
+    'storages',
     'rest_framework',
     'rest_framework.authtoken',
     'django.contrib.admin',
