@@ -40,8 +40,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'www.griot.me',
-    'griot.me',
+    'app.griot.me',
     'griot-load-balancer-1658910802.us-east-1.elb.amazonaws.com', 
     '18.206.170.241',
     '172.31.27.190',
