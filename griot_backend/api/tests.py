@@ -245,6 +245,15 @@ class LogoutTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         # Add additional assertions as per your application's missing token logout response.
 
+    def test_invalid_token_logout(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Token invalid-token')  # Set an invalid token
+
+        response = self.client.post(self.logout_user_url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data, {'detail': 'Invalid token'})
+
+
 class PasswordResetViewTest(APITestCase):
 
     def setUp(self):

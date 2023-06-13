@@ -1,3 +1,4 @@
+
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
@@ -22,6 +23,7 @@ from accounts.models import Account
 from characters.models import Character
 from memories.models import Memory, Video
 
+from griot_backend.authentication import CustomTokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from griot_backend.permissions import (
     ProfilePermissions, 
@@ -73,6 +75,7 @@ class PasswordResetConfirmView(generics.GenericAPIView):
 
 class LogoutView(generics.GenericAPIView):
     http_method_names = ['post']
+    authentication_classes = [CustomTokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
