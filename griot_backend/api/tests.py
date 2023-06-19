@@ -253,7 +253,6 @@ class LogoutTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data, {'detail': 'Invalid token'})
 
-
 class PasswordResetViewTest(APITestCase):
 
     def setUp(self):
@@ -317,7 +316,7 @@ class UpdateProfileTestCase(APITestCase):
         # Authenticate the test user
         self.client.force_authenticate(user=self.user)
 
-        self.update_profile_url = reverse('update_profile', args=[self.user.id]) 
+        self.update_profile_url = reverse('update_profile') 
 
     def test_successful_profile_update(self):
 
@@ -348,7 +347,35 @@ class UpdateProfileTestCase(APITestCase):
         response = self.client.patch(self.update_profile_url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        # Add additional assertions as per your application's unauthorized profile update response.
+
+
+class RetrieveProfileTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser",
+            password="testpassword123"  
+        )
+
+        self.profile = Profile.objects.create(user=self.user)
+
+        # Authenticate the test user
+        self.client.force_authenticate(user=self.user)
+
+        self.retrieve_profile_url = reverse('retrieve_profile')
+
+    def test_successful_profile_retrieval(self):
+        response = self.client.get(self.retrieve_profile_url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['user'], self.user.id)  # Assuming your serializer includes 'user' field.
+
+    def test_unauthorized_profile_retrieval(self):
+        self.client.force_authenticate(user=None)  # Remove authentication credentials
+
+        response = self.client.get(self.retrieve_profile_url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
 # Account related tests
 class AccountCreateTestCase(APITestCase):

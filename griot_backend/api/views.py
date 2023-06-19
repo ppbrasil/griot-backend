@@ -89,9 +89,18 @@ class UpdateProfileView(generics.UpdateAPIView):
     serializer_class = ProfileSerializer
         
     def get_object(self):
-        user_id = self.kwargs['pk']
-        profile = Profile.objects.get(user__id=user_id)
+        profile = Profile.objects.get(user__id=self.request.user.id)
         return profile
+    
+class RetrieveProfileView(generics.RetrieveAPIView):
+    http_method_names = ['get']
+    permission_classes = [IsAuthenticated, ProfilePermissions]
+    serializer_class = ProfileSerializer
+
+    def get_object(self):
+        profile = Profile.objects.get(user__id=self.request.user.id)
+        return profile
+
 
 class SearchProfileView(generics.ListAPIView):
     serializer_class = ProfileSerializer
