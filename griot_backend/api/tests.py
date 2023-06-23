@@ -367,7 +367,7 @@ class RetrieveProfileTestCase(APITestCase):
         response = self.client.get(self.retrieve_profile_url, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['user'], self.user.id)  # Assuming your serializer includes 'user' field.
+        self.assertEqual(response.data['user']['username'], self.user.username)  # Assuming your serializer includes 'user' field.
 
     def test_unauthorized_profile_retrieval(self):
         self.client.force_authenticate(user=None)  # Remove authentication credentials
