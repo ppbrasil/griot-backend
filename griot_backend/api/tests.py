@@ -1206,15 +1206,17 @@ class VideoCreateTestCase(APITestCase):
 
         self.memory = Memory.objects.create(title="Test memory", account=self.account)
         
-        self.video_file = SimpleUploadedFile("file.mp4", b"file_content", content_type="video/mp4")
+        self.video_file = SimpleUploadedFile("file.mp4", b"file_content" * (30 * 1024 * 1024), content_type="video/mp4")
+        self.thumbnail_file = SimpleUploadedFile("thumbnail.png", b"thumbnail_content", content_type="image/png")
 
     def test_create_video(self):
         self.client.force_authenticate(user=self.user)
 
         url = reverse('upload_memory_video')
         data = {
-            'memory': self.memory.id, 
-            'file': self.video_file
+            'memory': f'{self.memory.id}',
+            'file': self.video_file,
+            'thumbnail': self.thumbnail_file
         }
 
         response = self.client.post(url, data, format='multipart')
